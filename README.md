@@ -49,7 +49,7 @@ Jeżeli wszystko zostało poprawnie wykonane, użytkownikowi zostanie prosta wiz
 
 ![Symulacja ruchu drogowego](ezgif.com-animated-gif-maker.gif)
 
-Algorytm składa się z dwóch kluczowych funkcji:
+Algorytm składa się z dwóch kluczowych funkcji (Intersection.java):
 
 * ```getBusiestRoad() ``` – wybiera drogę, dla której światło zmieni się na zielone. wybiera drogę, na której zmieni się światło na zielone, kierując się: liczbą pojazdów, priorytetem drogi oraz czasem oczekiwania.
   - jeśli nie ma żadnych pojazdów (totalVehicles == 0), światła zmieniają się sekwencyjnie (po kolei),
