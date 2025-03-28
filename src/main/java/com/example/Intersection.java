@@ -8,14 +8,14 @@ import java.util.Map;
 import com.example.TrafficLight.LIGHT;
 
 public class Intersection {
-    private Map<String, Road> roads = new HashMap<>();
-    private List<String> leftVehicles = new ArrayList<>();
+    private final Map<String, Road> roads = new HashMap<>();
+    private final List<String> leftVehicles = new ArrayList<>();
     private int timeInCurrentState = 0;
     private static final int YELLOW_DURATION = 1;
     private int currentGreenDuration = 1;
     private final int MIN_GREEN_DURATION = 3;
-    private final int MAX_GREEN_DURATION = 7;
-    private static String prevBusiestDirection = null;
+    private final int MAX_GREEN_DURATION = 10;
+    private static String prevBusiestRoad = null;
     
 
     public Intersection() {
@@ -24,13 +24,13 @@ public class Intersection {
         roads.put("east", new Road("east", 1));
         roads.put("west", new Road("west", 1));
 
-        // Początkowy stan świateł
+        // Inital state of traffic lights
         setLights("north", LIGHT.GREEN);
         setLights("south", LIGHT.RED);
         setLights("east", LIGHT.RED);
         setLights("west", LIGHT.RED);
         
-        // Oblicz początkowy czas zielonego
+        // Initial green light duration
         currentGreenDuration = calculateGreenDuration("north");
         
     }
@@ -39,62 +39,59 @@ public class Intersection {
         roads.get(vehicle.getStartRoad()).addVehicleOnRoad(vehicle);
     }
 
-    private String getBusiestDirection() {
+    public String getBusiestRoad() {
         int totalVehicles = getTotalVehicles();
-        String busiestDirection = null;
+        String busiestRoad = null;
         
-        // Jeśli nie ma żadnych pojazdów, przełączaj sekwencyjnie
+        // If there are no vehicles in the intersection, change lights sequentially
         if (totalVehicles == 0) {
             String[] roadList = roads.keySet().toArray(new String[0]);
-            if (prevBusiestDirection == null) {
-                prevBusiestDirection = roadList[0];
+            if (prevBusiestRoad == null) {
+                prevBusiestRoad = roadList[0];
             }
     
             int index = 0;
             for (int i = 0; i < roadList.length; i++) {
-                if (roadList[i].equals(prevBusiestDirection)) {
+                if (roadList[i].equals(prevBusiestRoad)) {
                     index = i;
                     break;
                 }
             }
     
-            prevBusiestDirection = roadList[(index + 1) % roadList.length];
-            return prevBusiestDirection;
+            prevBusiestRoad = roadList[(index + 1) % roadList.length];
+            return prevBusiestRoad;
         }
     
-        // Standardowe wybieranie drogi z uwzględnieniem priorytetu i czasu oczekiwania
+        // Standard road choosing -> take priority, vehicles on the road and time at the red light 
         int maxWeight = -1;
         int maxWaitTime = -1;
     
         for (Map.Entry<String, Road> entry : roads.entrySet()) {
             Road road = entry.getValue();
             int vehiclesCount = road.getVehiclesOnRoad().size();
-            int vehiclePrio = road.getPriority();                   //Pobranie priorytetu
-            int waitTime = road.getRedDuration();                   //Pobieramy czas oczekiwania na czerwonym świetle
-            int weight = 2 * vehiclesCount + vehiclePrio;           // Obliczamy wagę drogi
+            int vehiclePrio = road.getPriority();                   
+            int waitTime = road.getRedDuration();                   
+            int weight = 2 * vehiclesCount + vehiclePrio;           
     
             if (weight > maxWeight) {
                 maxWeight = weight;
                 maxWaitTime = waitTime;
-                busiestDirection = entry.getKey();
+                busiestRoad = entry.getKey();
             } 
-            // Jeśli waga jest równa, wybieramy drogę, która czekała dłużej na czerwonym
+            // If the weight is equal to maxWeight, choose the road that has been waiting longer at the red light
             else if (weight == maxWeight && waitTime > maxWaitTime) {
                 maxWaitTime = waitTime;
-                busiestDirection = entry.getKey();
+                busiestRoad = entry.getKey();
             }
         }
     
-        prevBusiestDirection = busiestDirection;
-        return busiestDirection;
+        prevBusiestRoad = busiestRoad;
+        return busiestRoad;
     }
     public void step() {
         leftVehicles.clear();
         
-    
         
-    
-        // Zaktualizowanie statusu świateł
         updateTrafficLight();
         timeInCurrentState++;
         
@@ -104,7 +101,7 @@ public class Intersection {
     }
     
     
-    private void updateTrafficLight() {
+    public void updateTrafficLight() {
         String activeDirection = getActiveDirection();
     
     
@@ -123,9 +120,9 @@ public class Intersection {
         for (Map.Entry<String, Road> entry : roads.entrySet()) {
             Road road = entry.getValue();
             if (road.getTrafficLight().getLightStatus() == LIGHT.RED) {
-                road.incrementRedDuration(road.getRedDuration()); // Zwiększ licznik czerwonego światła
+                road.incrementRedDuration(road.getRedDuration()); 
             } else {
-                road.setRedDuration(0); // Zeruj licznik, jeśli światło nie jest czerwone
+                road.setRedDuration(0); 
             }
         }
     }
@@ -143,17 +140,17 @@ public class Intersection {
     private void switchLightState(String activeDirection, LIGHT currentStatus) {
         LIGHT prevLight = roads.get(activeDirection).getTrafficLight().getPrevLightStatus();
         if (currentStatus == LIGHT.GREEN) {
-            // Jeśli światło jest zielone, zmieniamy na żółte
+            // If the light is green, change it to yellow
             setLights(activeDirection, LIGHT.YELLOW);
             timeInCurrentState = 0;
             currentGreenDuration = YELLOW_DURATION;
         } 
         else if (currentStatus == LIGHT.YELLOW && prevLight == LIGHT.GREEN) {
-            // Jeśli było żółte, zmieniamy na czerwone i uruchamiamy nowe zielone
+            // If the light is yellow and was green, change it to yellow and choose new road
             setLights(activeDirection, LIGHT.RED);
             activateNewGreenLight();
         } else if (currentStatus == LIGHT.YELLOW && prevLight == LIGHT.RED) {
-            // Jeśli było żółte, zmieniamy na czerwone i uruchamiamy nowe zielone
+            // If the light is yellow and was red, update it green and calculate new time
             setLights(activeDirection, LIGHT.GREEN);
             currentGreenDuration = calculateGreenDuration(activeDirection);
         }
@@ -161,7 +158,7 @@ public class Intersection {
 
 
     private void activateNewGreenLight() {
-        String nextGreen = getBusiestDirection();
+        String nextGreen = getBusiestRoad();
         if (roads.get(nextGreen).getTrafficLight().getLightStatus().equals(LIGHT.RED)){
             setLights(nextGreen, LIGHT.YELLOW);
             currentGreenDuration = YELLOW_DURATION;
@@ -170,36 +167,26 @@ public class Intersection {
             setLights(nextGreen, LIGHT.GREEN);
             currentGreenDuration = calculateGreenDuration(nextGreen);
             timeInCurrentState = 0;
-            
-            System.out.println("New green light for " + nextGreen + 
-                            " for " + currentGreenDuration + " units");
-        }
-        
+        }   
     }
 
     
     
-    private int calculateGreenDuration(String direction) {
+    public int calculateGreenDuration(String direction) {
         int currentVehicles = roads.get(direction).getVehiclesOnRoad().size();
         int totalVehicles = getTotalVehicles();
         if (totalVehicles == 0) {
             return MIN_GREEN_DURATION;
         }
         
+        // if optimization is need, calculate new time using ratio of currentVehicles and totalVehicles
         float ratio = (float)currentVehicles / totalVehicles;
         int calculatedDuration = MIN_GREEN_DURATION + 
-                               (int)((MAX_GREEN_DURATION - MIN_GREEN_DURATION) * ratio/2);
+                               (int)((MAX_GREEN_DURATION - MIN_GREEN_DURATION) * ratio);
         
-        // Zapewnij minimalny czas
         return  calculatedDuration;
     }
     
-    private int getTotalVehicles() {
-        return roads.values().stream()
-                   .mapToInt(r -> r.getVehiclesOnRoad().size())
-                   .sum();
-    }
-
     private void setLights(String direction, LIGHT light) {
         roads.get(direction).getTrafficLight().setLightStatus(light);
     }
@@ -211,6 +198,23 @@ public class Intersection {
             leftVehicles.add(vehicle.getVehicleId());
         }
     }
+
+    // ------------------------------ Getters ------------------------------ 
+
+    public int getMIN_GREEN_DURATION(){
+        return MIN_GREEN_DURATION; 
+    }
+
+    public int getMAX_GREEN_DURATION(){
+        return MAX_GREEN_DURATION;
+    }
+
+    public int getTotalVehicles() {
+        return roads.values().stream()
+                   .mapToInt(r -> r.getVehiclesOnRoad().size())
+                   .sum();
+    }
+
 
     public List<String> getLeftVehicles() {
         return leftVehicles;

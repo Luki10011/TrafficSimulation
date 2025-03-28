@@ -15,7 +15,7 @@ public class Simulation {
 
     private final Intersection intersection;
     private final IntersectionVisualizer iVisualizer;
-    private List<Vehicle> allVehicles;
+    private final List<Vehicle> allVehicles;
     
     public Simulation() {
         this.intersection = new Intersection();
@@ -39,22 +39,27 @@ public class Simulation {
     }
 
     public void performSimulationFromJSON(String inputFile, String outputFile) {
-        String JSONString = getStringFromFile(inputFile);
+        String JSONString = getStringFromFile(inputFile);   // Input json
         JSONObject jsonObject = new JSONObject(JSONString);
         JSONArray commands = jsonObject.getJSONArray("commands");
         
-        // Tutaj przechowujemy stan każdego kroku
-        JSONArray stepStatuses = new JSONArray();
+        
+        JSONArray stepStatuses = new JSONArray(); // Output json
         
         for (int i = 0; i < commands.length(); i++) {
             JSONObject command = commands.getJSONObject(i);
             String type = command.getString("type");
-            System.out.println("Command: " + type + "\t" + (i+1) +"/" + commands.length());
+
+            // Keep track of current command, it can be usefull during debugging
+            System.out.print("Command: " + type + "\t" + (i+1) +"/" + commands.length() + "\t".repeat(3));
+
             switch (type) {
                 case "addVehicle" -> {
+                    // Getting data from json
                     String vehicleId = command.getString("vehicleId");
                     String startRoad = command.getString("startRoad");
                     String endRoad = command.getString("endRoad");
+                    // Check if there is a car that already has same id
                     for (Vehicle car : allVehicles) {
                         if (car.getVehicleId().equals(vehicleId)) {
                             throw new AssertionError("Car of this ID is already in simulation!");
@@ -67,7 +72,7 @@ public class Simulation {
                 case "step" -> {
                     intersection.step();
                     
-                    // Po każdym kroku zapisujemy, które pojazdy pozostały
+                    // For each step save left vehicles
                     JSONObject stepStatus = new JSONObject();
                     JSONArray leftVehicles = new JSONArray();
                     
@@ -88,19 +93,23 @@ public class Simulation {
         
         
         // Zapisujemy cały wynik do pliku
+        saveDataToJSONFile(stepStatuses, outputFile);
+        
+    }
+
+    public static void saveDataToJSONFile(JSONArray outputJSON, String outputFile){
         JSONObject output = new JSONObject();
-        output.put("stepStatuses", stepStatuses);
+        output.put("stepStatuses", outputJSON);
         
         try (FileWriter file = new FileWriter(outputFile)) {
-            file.write(output.toString(2));  // 2 oznacza wcięcia dla przyjemnego dla oka formatowania
+            file.write(output.toString(2)); 
             System.out.println("Successfully saved simulation results to: " + outputFile);
         } catch (IOException e) {
             System.err.println("Error while saving to file: " + e.getMessage());
         }
-        
+
     }
     
-    //
     public static void waitForEnter() {
         Scanner scanner = new Scanner(System.in);
         System.out.println("Please press enter to continue...");
@@ -114,16 +123,24 @@ public class Simulation {
         
         try {
             if (os.contains("win")) {
-                // Windows: uruchomienie polecenia cls
+                // Windows:
                 processBuilder = new ProcessBuilder("cmd", "/c", "cls");
             } else {
-                // Linux/macOS: uruchomienie polecenia clear
+                // Linux/macOS
                 processBuilder = new ProcessBuilder("clear");
             }
             processBuilder.inheritIO().start().waitFor(); // Wykonanie komendy i oczekiwanie na zakończenie
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Vehicle> getAllVehicles() {
+        return allVehicles;
+    }
+
+    public Intersection getIntersection() {
+        return intersection;
     }
 
     

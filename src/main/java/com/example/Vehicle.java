@@ -12,6 +12,7 @@ public class Vehicle {
         this.vehicleId = vehicleId;
         this.startRoad = startRoad;
         if (startRoad.equals(endRoad)){
+            // We asume that you cannot make a U-turn at this intersection :~)
             throw new AssertionError("Start road and end road can't be the same!");
         }else{
             this.endRoad = endRoad;
@@ -19,12 +20,6 @@ public class Vehicle {
         }
 
     }
-    
-    public String getEndRoad() {return endRoad;}
-    public String getCurrentRoad() {return currentRoad;}
-    public String getStartRoad() {return startRoad;}
-    public String getVehicleId() {return vehicleId;}
-
 
     @Override
     public String toString(){
@@ -34,5 +29,15 @@ public class Vehicle {
         vehicleString.append("EndRoad: ").append(this.endRoad).append("\n");
         return vehicleString.toString();
     }
+
+    // ------------------------------ Getters ------------------------------ 
+    
+    public String getEndRoad() {return endRoad;}
+    public String getCurrentRoad() {return currentRoad;}
+    public String getStartRoad() {return startRoad;}
+    public String getVehicleId() {return vehicleId;}
+
+
+    
     
 }

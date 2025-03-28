@@ -23,7 +23,7 @@ public class TrafficLight {
     };
     
     private LIGHT lightStatus = LIGHT.RED; 
-    private LIGHT prevLightStatus = LIGHT.YELLOW;
+    private LIGHT prevLightStatus;
 
     public void setLightStatus(LIGHT lightStatus_) {this.prevLightStatus = lightStatus; this.lightStatus = lightStatus_;}
 
