@@ -62,4 +62,4 @@ Algorytm składa się z dwóch kluczowych funkcji:
   - nowy czas światła oblicza się jako: MIN_GREEN_DURATION+(MAX_GREEN_DURATION−MIN_GREEN_DURATION)×ratio,
   - ostateczna wartość jest przekształcona na int, aby nie było wartości dziesiętnych.
 
- Algorytm został stowrzony do zmiany światła na jednej drodze, dzięki czemu nie występują sytuacje konfliktowe. 
+Algorytm został stworzony do zmiany światła na jednej drodze, dzięki czemu nie występują sytuacje konfliktowe, co niestety odbija się na wydajność skrzyżowania. Struktura kodu oraz zastosowanie podejścia obiektowego umożliwają przyszłą potencjalną modyfikacje pod kątem zmiany dwóch świateł na raz. 
