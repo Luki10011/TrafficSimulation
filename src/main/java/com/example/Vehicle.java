@@ -12,7 +12,7 @@ public class Vehicle {
         this.vehicleId = vehicleId;
         this.startRoad = startRoad;
         if (startRoad.equals(endRoad)){
-            // We asume that you cannot make a U-turn at this intersection :~)
+            // I asume that you can't make a U-turn at this intersection :~)
             throw new AssertionError("Start road and end road can't be the same!");
         }else{
             this.endRoad = endRoad;
